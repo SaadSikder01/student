@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+
+  :root{
+    --cyan:#00e5ff;
+    --violet:#7c3aed;
+    --green:#39ff9e;
+    --text:#eaf1ff;
+    --muted:#a8b8d4;
+  }
+
+  body{
+    font-family:'Poppins',system-ui,-apple-system,sans-serif;
+    background:#000;
+    color:var(--text);
+    overflow-x:hidden;
+    overflow-y:auto;
+  }
+
+  /* ============ BACKGROUND VIDEO ============ */
+  #bgVideo{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:0;
+  }
+
+  .overlay{
+    position:fixed;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    background:linear-gradient(
+      90deg,
+      rgba(0,0,0,.82) 0%,
+      rgba(0,0,0,.58) 28%,
+      rgba(0,0,0,.24) 55%,
+      rgba(0,0,0,.05) 75%,
+      rgba(0,0,0,0) 90%
+    );
+  }
+
+  /* ============ CYBER INTRO ============ */
+  #intro{
+    position:fixed;
+    inset:0;
+    z-index:200;
+    display:grid;
+    place-items:center;
+    background:radial-gradient(circle at 50% 50%, #05101c 0%, #02060c 70%, #000 100%);
+    padding:24px;
+    transition:opacity .9s ease, visibility .9s;
+  }
+  #intro.hide{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+  }
+
+  #intro::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(rgba(0,229,255,.05) 1px, transparent 1px) 0 0/100% 3px,
+      linear-gradient(90deg, rgba(0,229,255,.04) 1px, transparent 1px) 0 0/3px 100%;
+    pointer-events:none;
+    mix-blend-mode:screen;
+    opacity:.5;
+  }
+  #intro::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:repeating-linear-gradient(
+      180deg,
+      rgba(0,0,0,.18) 0 1px,
+      transparent 1px 3px
+    );
+    pointer-events:none;
+    opacity:.35;
+  }
+
+  .terminal{
+    position:relative;
+    z-index:2;
+    width:min(680px, 100%);
+    padding:clamp(24px, 4vw, 42px) clamp(20px, 4vw, 44px);
+    border:1px solid rgba(0,229,255,.35);
+    border-radius:14px;
+    background:rgba(4,12,22,.55);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    box-shadow:
+      0 0 40px rgba(0,229,255,.15),
+      inset 0 0 60px rgba(0,229,255,.06);
+    animation:termIn 1s cubic-bezier(.2,.9,.25,1.2) both;
+  }
+  @keyframes termIn{
+    from{opacity:0; transform:translateY(24px) scale(.96); filter:blur(6px)}
+    to{opacity:1; transform:none; filter:blur(0)}
+  }
+
+  .corner{
+    position:absolute;
+    width:16px;
+    height:16px;
+    border:2px solid var(--cyan);
+    box-shadow:0 0 12px rgba(0,229,255,.8);
+  }
+  .corner.tl{ top:-1px; left:-1px; border-right:none; border-bottom:none; }
+  .corner.tr{ top:-1px; right:-1px; border-left:none; border-bottom:none; }
+  .corner.bl{ bottom:-1px; left:-1px; border-right:none; border-top:none; }
+  .corner.br{ bottom:-1px; right:-1px; border-left:none; border-top:none; }
+
+  .term-head{
+    font-family:'Share Tech Mono', monospace;
+    font-size:.78rem;
+    letter-spacing:.22em;
+    color:var(--cyan);
+    opacity:.85;
+    margin-bottom:22px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    text-transform:uppercase;
+  }
+  .term-head .dots{ display:flex; gap:6px; }
+  .term-head .dots i{
+    width:9px; height:9px; border-radius:50%;
+    background:rgba(0,229,255,.3);
+    box-shadow:0 0 8px rgba(0,229,255,.5);
+  }
+  .term-head .dots i:nth-child(1){ background:var(--green); box-shadow:0 0 8px var(--green); }
+  .term-head .dots i:nth-child(2){ background:#ffcc4d; box-shadow:0 0 8px #ffcc4d; }
+  .term-head .dots i:nth-child(3){ background:#ff4d6d; box-shadow:0 0 8px #ff4d6d; }
+
+  #termBody{
+    font-family:'Share Tech Mono', monospace;
+    font-size:clamp(.85rem, 1.5vw, 1rem);
+    line-height:2;
+    color:#d7f6ff;
+    text-shadow:0 0 12px rgba(0,229,255,.35);
+    min-height:230px;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  #termBody .ok{ color:var(--green); text-shadow:0 0 12px rgba(57,255,158,.6); }
+  #termBody .warn{ color:#ffcc4d; text-shadow:0 0 12px rgba(255,204,77,.55); }
+  #termBody .dim{ color:#7fa4c2; }
+
+  #enterBtn{
+    margin-top:30px;
+    display:none;
+    width:100%;
+    padding:16px 30px;
+    font-family:'Share Tech Mono', monospace;
+    font-size:1rem;
+    letter-spacing:.5em;
+    text-indent:.5em;
+    color:#02060c;
+    background:linear-gradient(135deg, var(--cyan), var(--violet));
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:700;
+    box-shadow:
+      0 0 24px rgba(0,229,255,.55),
+      0 0 60px rgba(124,58,237,.35);
+    position:relative;
+    overflow:hidden;
+    transition:transform .25s, box-shadow .3s;
+  }
+  #enterBtn:hover{
+    transform:translateY(-3px);
+    box-shadow:
+      0 0 34px rgba(0,229,255,.85),
+      0 0 80px rgba(124,58,237,.55);
+  }
+  #enterBtn::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(120deg, transparent 30%, rgba(255,255,255,.55) 50%, transparent 70%);
+    transform:translateX(-120%);
+    animation:shine 2.6s infinite;
+  }
+  @keyframes shine{
+    0%{ transform:translateX(-120%); }
+    60%,100%{ transform:translateX(120%); }
+  }
+  #enterBtn.show{
+    display:block;
+    animation:btnPop .55s cubic-bezier(.2,1.4,.4,1) both;
+  }
+  @keyframes btnPop{
+    from{ opacity:0; transform:translateY(14px) scale(.94); }
+    to  { opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  /* ============ MAIN MENU ============ */
+  .menu-wrap{
+    position:relative;
+    z-index:3;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:70px clamp(22px,5vw,60px) 70px clamp(28px,7vw,120px);
+    max-width:780px;
+    opacity:0;
+    transition:opacity .8s ease;
+  }
+  .menu-wrap.show{ opacity:1; }
+
+  .eyebrow{
+    font-size:clamp(.68rem,1.4vw,.82rem);
+    letter-spacing:.42em;
+    text-transform:uppercase;
+    font-weight:500;
+    color:var(--cyan);
+    margin-bottom:18px;
+    min-height:1.2em;
+    text-shadow:0 0 18px rgba(0,229,255,.6), 0 0 40px rgba(0,229,255,.3);
+  }
+
+  .title{
+    font-family:'Space Grotesk','Poppins',sans-serif;
+    font-size:clamp(2.3rem,7.2vw,5.6rem);
+    font-weight:700;
+    line-height:1.05;
+    letter-spacing:.02em;
+    margin-bottom:22px;
+    min-height:1.1em;
+    background:linear-gradient(180deg,#ffffff 0%,#a9edff 45%,#2f9dff 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    color:transparent;
+    filter:drop-shadow(0 0 26px rgba(0,229,255,.45))
+           drop-shadow(0 0 60px rgba(47,157,255,.25));
+  }
+
+  .sub{
+    font-size:clamp(.88rem,1.55vw,1.02rem);
+    font-weight:300;
+    line-height:1.95;
+    color:#cdd9ee;
+    max-width:560px;
+    margin-bottom:34px;
+    min-height:1.9em;
+    text-shadow:0 2px 14px rgba(0,0,0,.9);
+  }
+
+  .section-title{
+    font-family:'Space Grotesk','Poppins',sans-serif;
+    font-size:clamp(1.25rem,2.6vw,1.85rem);
+    font-weight:700;
+    line-height:1.3;
+    color:#ffffff;
+    margin-bottom:10px;
+    min-height:1.3em;
+    text-shadow:0 0 22px rgba(0,229,255,.4), 0 2px 12px rgba(0,0,0,.9);
+  }
+
+  .section-sub{
+    font-size:clamp(.82rem,1.4vw,.95rem);
+    font-weight:300;
+    line-height:1.9;
+    color:var(--muted);
+    max-width:520px;
+    margin-bottom:26px;
+    min-height:1.9em;
+    text-shadow:0 2px 14px rgba(0,0,0,.9);
+  }
+
+  .menu-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-top:6px;
+    min-height:220px;
+  }
+
+  .menu-item{
+    font-size:clamp(.95rem,1.7vw,1.18rem);
+    font-weight:500;
+    letter-spacing:.02em;
+    color:#eaf1ff;
+    padding:9px 14px 9px 6px;
+    min-height:1.7em;
+    border-radius:10px;
+    text-shadow:0 2px 12px rgba(0,0,0,.85);
+    transition:background .3s, transform .3s, color .3s;
+    cursor:default;
+  }
+  .menu-item::before{
+    content:'▸';
+    display:inline-block;
+    color:var(--cyan);
+    font-size:.85em;
+    margin-right:12px;
+    opacity:0;
+    transform:translateX(-6px);
+    transition:opacity .35s ease, transform .35s ease;
+    text-shadow:0 0 14px rgba(0,229,255,.9);
+  }
+  .menu-item.typing::before,
+  .menu-item.done::before{
+    opacity:1;
+    transform:translateX(0);
+  }
+  .menu-item.done::before{
+    animation:arrowPulse 1.9s ease-in-out infinite;
+  }
+  @keyframes arrowPulse{
+    0%,100%{ transform:translateX(0); }
+    50%    { transform:translateX(4px); }
+  }
+  .menu-item:hover{
+    background:rgba(0,229,255,.08);
+    color:#ffffff;
+    transform:translateX(6px);
+  }
+
+  .typing:not(.title)::after{
+    content:'▌';
+    display:inline-block;
+    margin-left:2px;
+    color:var(--cyan);
+    font-weight:300;
+    animation:blink .78s steps(2) infinite;
+    text-shadow:0 0 12px rgba(0,229,255,.9);
+  }
+  @keyframes blink{
+    0%,50%   { opacity:1; }
+    50.01%,100%{ opacity:0; }
+  }
+
+  /* ============ MUSIC BUTTON ============ */
+  #musicBtn{
+    position:fixed;
+    right:22px;
+    bottom:22px;
+    z-index:50;
+    width:58px;
+    height:58px;
+    border-radius:50%;
+    border:1px solid rgba(0,229,255,.45);
+    background:rgba(8,14,26,.72);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+    box-shadow:0 0 24px rgba(0,229,255,.25);
+    transition:transform .3s, box-shadow .3s, border-color .3s, opacity .5s;
+    opacity:0;
+    pointer-events:none;
+  }
+  #musicBtn.ready{
+    opacity:1;
+    pointer-events:auto;
+  }
+  #musicBtn:hover{
+    transform:scale(1.1);
+    box-shadow:0 0 38px rgba(0,229,255,.5);
+  }
+  #musicBtn.playing{ border-color:rgba(0,229,255,.9); }
+  #musicBtn.playing::before{
+    content:'';
+    position:absolute;
+    inset:-4px;
+    border-radius:50%;
+    border:1px solid rgba(0,229,255,.5);
+    animation:ring 1.8s infinite;
+  }
+  @keyframes ring{
+    0%  { transform:scale(1);  opacity:.9; }
+    100%{ transform:scale(1.5); opacity:0; }
+  }
+
+  .bars{
+    display:flex;
+    align-items:flex-end;
+    gap:3px;
+    height:20px;
+  }
+  .bars i{
+    width:3px;
+    height:6px;
+    border-radius:3px;
+    background:linear-gradient(180deg,var(--cyan),var(--violet));
+    transition:height .3s;
+  }
+  #musicBtn.playing .bars i{ animation:eq .9s ease-in-out infinite; }
+  #musicBtn.playing .bars i:nth-child(1){ animation-delay:0s; }
+  #musicBtn.playing .bars i:nth-child(2){ animation-delay:.15s; }
+  #musicBtn.playing .bars i:nth-child(3){ animation-delay:.3s; }
+  #musicBtn.playing .bars i:nth-child(4){ animation-delay:.45s; }
+  @keyframes eq{
+    0%,100%{ height:5px; }
+    50%    { height:20px; }
+  }
+
+  @media (max-width:720px){
+    .overlay{
+      background:linear-gradient(
+        180deg,
+        rgba(0,0,0,.55) 0%,
+        rgba(0,0,0,.82) 45%,
+        rgba(0,0,0,.88) 100%
+      );
+    }
+    .menu-wrap{
+      max-width:100%;
+      padding:90px 24px 90px 24px;
+    }
+    .menu-list{ min-height:0; }
+    .menu-item{ padding:7px 4px; }
+  }
+</style>
+</head>
+
+<body>
+
+  <video id="bgVideo" muted loop playsinline preload="auto">
+    <source src="bgvideo.mp4" type="video/mp4" />
+  </video>
+
+  <div class="overlay"></div>
+
+  <div id="intro">
+    <div class="terminal">
+      <span class="corner tl"></span>
+      <span class="corner tr"></span>
+      <span class="corner bl"></span>
+      <span class="corner br"></span>
+
+      <div class="term-head">
+        <span>// student_portal_boot</span>
+        <span class="dots"><i></i><i></i><i></i></span>
+      </div>
+
+      <div id="termBody"></div>
+
+      <button id="enterBtn">ENTER</button>
+    </div>
+  </div>
+
+  <main class="menu-wrap" id="mainMenu">
+
+    <p class="eyebrow" data-text="Welcome to the future of learning"></p>
+
+    <h1 class="title" data-text="STUDENT POWER"></h1>
+
+    <p class="sub"
+       data-text="একসাথে শিখি, একসাথে এগিয়ে যাই — নোটস, রুটিন, রেজাল্ট আর সাপোর্ট সব এক জায়গায়।">
+    </p>
+
+    <h2 class="section-title" data-text="Everything you need, in one place"></h2>
+
+    <p class="section-sub"
+       data-text="স্মার্ট, দ্রুত আর সম্পূর্ণ ডার্ক থিমে সাজানো তোমার পড়াশোনার ঠিকানা।">
+    </p>
+
+    <div class="menu-list">
+      <div class="menu-item" data-text="📚  Smart Notes"></div>
+      <div class="menu-item" data-text="📊  Result Tracker"></div>
+      <div class="menu-item" data-text="🗓️  Class Routine"></div>
+      <div class="menu-item" data-text="💬  Community"></div>
+    </div>
+
+  </main>
+
+  <audio id="music" src="music.mp3" loop preload="auto"></audio>
+
+  <button id="musicBtn" aria-label="Music On/Off" title="Music On/Off">
+    <span class="bars"><i></i><i></i><i></i><i></i></span>
+  </button>
+
+<script>
+/* =========================================================
+   HELPERS
+========================================================= */
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+function splitGraphemes(str){
+  if (typeof Intl !== 'undefined' && Intl.Segmenter){
+    const seg = new Intl.Segmenter('bn', { granularity:'grapheme' });
+    return [...seg.segment(str)].map(s => s.segment);
+  }
+  return Array.from(str);
+}
+
+/* =========================================================
+   VIDEO + MUSIC
+   - Video: kept PAUSED + RESET at 0 until ENTER is pressed.
+   - Music: also starts fresh from 0 on ENTER.
+========================================================= */
+const bgVideo  = document.getElementById('bgVideo');
+const music    = document.getElementById('music');
+const musicBtn = document.getElementById('musicBtn');
+
+let started = false;
+
+// Make sure the video is at the very beginning and paused on page load.
+function resetVideo(){
+  try {
+    bgVideo.pause();
+    bgVideo.currentTime = 0;
+  } catch(e){}
+}
+bgVideo.addEventListener('loadedmetadata', resetVideo);
+resetVideo();
+
+// Ensure music is paused and reset before ENTER.
+try { music.pause(); music.currentTime = 0; } catch(e){}
+music.volume = 0.45;
+
+/* =========================================================
+   INTRO TYPEWRITER
+========================================================= */
+const termBody = document.getElementById('termBody');
+const enterBtn = document.getElementById('enterBtn');
+const introEl  = document.getElementById('intro');
+
+const bootLines = [
+  { text: '> SYSTEM BOOT INITIATED...',            cls: 'dim'  },
+  { text: '> Take a dive... dive as a student.',   cls: ''     },
+  { text: '> Welcome to the futere of learning.',  cls: ''     },
+  { text: '> Verifying identity ..........',       cls: 'dim'  },
+  { text: '> [ OK ] ACCESS GRANTED',               cls: 'ok'   },
+];
+
+function typeChar(el, text, cls, base = 32){
+  return new Promise(resolve => {
+    const chars = splitGraphemes(text);
+    let i = 0;
+    const span = document.createElement('div');
+    if (cls) span.className = cls;
+    el.appendChild(span);
+
+    function tick(){
+      if (i >= chars.length){ resolve(); return; }
+      const ch = chars[i];
+      span.textContent += ch;
+      i++;
+      let d = base;
+      if (ch === '.') d = base * 6;
+      if (ch === ',') d = base * 3;
+      if (ch === ' ') d = base * 0.5;
+      setTimeout(tick, d);
+    }
+    tick();
+  });
+}
+
+async function runIntro(){
+  await wait(600);
+  for (const line of bootLines){
+    await typeChar(termBody, line.text, line.cls, 30);
+    await wait(320);
+  }
+  enterBtn.classList.add('show');
+}
+
+runIntro();
+
+/* =========================================================
+   ENTER BUTTON
+   -> Restart VIDEO from 0
+   -> Restart MUSIC from 0
+   -> Dismiss intro, run main menu sequence
+========================================================= */
+const mainMenu = document.getElementById('mainMenu');
+
+enterBtn.addEventListener('click', () => {
+  if (started) return;
+  started = true;
+
+  /* ---- VIDEO: reset to beginning, then play ---- */
+  try {
+    bgVideo.currentTime = 0;
+  } catch(e){}
+  bgVideo.muted = true;   // required for autoplay policies
+  const vp = bgVideo.play();
+  if (vp && vp.catch) vp.catch(() => {});
+
+  /* ---- MUSIC: reset to beginning, then play ---- */
+  try { music.currentTime = 0; } catch(e){}
+  const mp = music.play();
+  if (mp && mp.then){
+    mp.then(() => {
+      musicBtn.classList.add('playing');
+      musicBtn.classList.add('ready');
+    }).catch(() => {
+      // Browser blocked it — show the button so user can tap it manually
+      musicBtn.classList.add('ready');
+    });
+  } else {
+    musicBtn.classList.add('ready');
+  }
+
+  /* ---- Transition ---- */
+  introEl.classList.add('hide');
+  setTimeout(() => introEl.remove(), 950);
+
+  mainMenu.classList.add('show');
+  setTimeout(runMainSequence, 350);
+});
+
+/* =========================================================
+   MAIN MENU TYPEWRITER
+========================================================= */
+function typeLine(el, text, base = 40){
+  return new Promise(resolve => {
+    const chars = splitGraphemes(text);
+    let i = 0;
+    el.textContent = '';
+    el.classList.add('typing');
+    el.classList.remove('done');
+
+    function tick(){
+      if (i >= chars.length){
+        el.classList.remove('typing');
+        el.classList.add('done');
+        resolve();
+        return;
+      }
+      const ch = chars[i];
+      el.textContent += ch;
+      i++;
+
+      let d = base;
+      if (ch === ' ')                d = base * 0.35;
+      else if (',;।'.includes(ch))   d = base * 3.5;
+      else if ('.!?'.includes(ch))   d = base * 5;
+      else if (ch === '—' || ch === '-') d = base * 2.5;
+
+      setTimeout(tick, d);
+    }
+    tick();
+  });
+}
+
+async function runMainSequence(){
+  const eyebrow      = document.querySelector('.eyebrow');
+  const title        = document.querySelector('.title');
+  const sub          = document.querySelector('.sub');
+  const sectionTitle = document.querySelector('.section-title');
+  const sectionSub   = document.querySelector('.section-sub');
+  const menuItems    = document.querySelectorAll('.menu-item');
+
+  await wait(200);
+
+  await typeLine(eyebrow,      eyebrow.dataset.text,      42);
+  await wait(260);
+
+  await typeLine(title,        title.dataset.text,        95);
+  await wait(360);
+
+  await typeLine(sub,          sub.dataset.text,          24);
+  await wait(480);
+
+  await typeLine(sectionTitle, sectionTitle.dataset.text, 50);
+  await wait(160);
+
+  await typeLine(sectionSub,   sectionSub.dataset.text,   24);
+  await wait(520);
+
+  for (const item of menuItems){
+    await typeLine(item, item.dataset.text, 34);
+    await wait(180);
+  }
+}
+
+/* =========================================================
+   MUSIC BUTTON (toggle)
+========================================================= */
+musicBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (music.paused){
+    try { music.currentTime = 0; } catch(err){}
+    music.play()
+      .then(() => musicBtn.classList.add('playing'))
+      .catch(() => {});
+  } else {
+    music.pause();
+    musicBtn.classList.remove('playing');
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key.toLowerCase() === 'm') musicBtn.click();
+  if (e.key === 'Enter' && !started) enterBtn.click();
+});
+
+/* =========================================================
+   VIDEO FALLBACK
+========================================================= */
+bgVideo.addEventListener('error', () => {
+  document.body.style.background =
+    'radial-gradient(circle at 30% 20%, #10203a, #04060c 70%)';
+});
+</script>
+
+</body>
+</html>
